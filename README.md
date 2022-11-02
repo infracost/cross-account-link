@@ -7,6 +7,10 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
 Import the module into your codebase and provide the `infracost_external_id` variable which points to your Infracost Cloud organization ID.
 
 ```terraform
+provider "aws" {
+  region  = "us-east-1" # NOTE: this can currently be us-east-1 or eu-central-1. Email hello@infracost.io if you need another region as we need to deploy our SNS topic there first.
+}
+
 module "infracost" {
   source = "github.com/infracost/cross-account-link"
   infracost_external_id = "INFRACOST_ORGANIZATION_ID"
