@@ -352,7 +352,7 @@ resource "aws_s3_bucket_notification" "sns_topic" {
   bucket = aws_s3_bucket.cost_and_usage_report_bucket.id
 
   topic {
-    topic_arn = "arn:aws:sns:${data.aws_region.current}:${var.infracost_account}:cur-uploaded"
+    topic_arn = "arn:aws:sns:${data.aws_region.current.name}:${var.infracost_account}:cur-uploaded"
 
     events = [
       "s3:ObjectCreated:*",
@@ -374,25 +374,41 @@ resource "aws_s3_bucket_public_access_block" "cost_and_usage_report_bucket" {
 resource "aws_s3_bucket_policy" "cost_and_usage_report_bucket_policy" {
   bucket = aws_s3_bucket.cost_and_usage_report_bucket.id
   policy = jsonencode({
-    Version   = "2012-10-17"
-    Statement = [
+    "Version" : "2012-10-17",
+    "Statement" : [
       {
-        Action : ["s3:GetBucketAcl", "s3:GetBucketPolicy"], Effect : "Allow",
-        Resource : "arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}",
-        Principal : { Service : "billingreports.amazonaws.com" }
-      }, {
-        Action : ["s3:PutObject"], Effect : "Allow",
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "billingreports.amazonaws.com"
+        },
+        "Action" : [
+          "s3:GetBucketAcl",
+          "s3:GetBucketPolicy"
+        ],
+        "Resource" : "arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}"
+      },
+      {
+        "Effect" : "Allow",
+        "Principal" : {
+          "Service" : "billingreports.amazonaws.com"
+        },
+        "Action" : "s3:PutObject",
+        "Resource" : "arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}/*"
+      },
+      {
+        Action : [
+          "s3:GetObject",
+          "s3:GetObjectAcl"
+        ],
+        Effect : "Allow",
         Resource : "arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}/*",
-        Principal : { Service : "billingreports.amazonaws.com" }
-      }, {
-        Action : ["s3:GetObject", "s3:GetObjectAcl"], Effect : "Allow",
-        Resource : "arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}/*",
-        Principal : { AWS : aws_iam_role.cross_account_role.arn }
+        Principal : {
+          AWS : aws_iam_role.cross_account_role.arn
+        }
       }
     ]
   })
 }
-
 
 resource "aws_cur_report_definition" "costand_usage_report" {
   provider = aws.us_east_1
