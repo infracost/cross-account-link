@@ -8,7 +8,8 @@ Import the module into your codebase and provide the `infracost_external_id` var
 
 ```terraform
 provider "aws" {
-  region  = "us-east-1" # NOTE: this can currently be us-east-1 or eu-central-1. Email hello@infracost.io if you need another region as we need to deploy our SNS topic there first.
+  # NOTE: this module can currently be deployed in us-east-1 or eu-central-1. Email hello@infracost.io if you need another region as we need to deploy our SNS topic there first.
+  region  = "us-east-1"
 }
 
 module "infracost" {
