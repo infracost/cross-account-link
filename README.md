@@ -12,9 +12,18 @@ provider "aws" {
   region  = "us-east-1"
 }
 
+provider "aws" {
+  alias  = "us_east_1"
+  region = "us-east-1"
+}
+
 module "infracost" {
   source = "github.com/infracost/cross-account-link"
   infracost_external_id = "INFRACOST_ORGANIZATION_ID"
+  # add a provider for region `us-east-1` and pass this in using aws.us_east_1 alias.
+  providers = {
+    aws.us_east_1 = aws.us_east_1
+  }
 }
 
 output "infracost_cross_account_role_arn" {

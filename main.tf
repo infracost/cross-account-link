@@ -2,13 +2,9 @@ terraform {
   required_providers {
     aws = {
       source = "hashicorp/aws"
+      configuration_aliases = [ aws.us_east_1 ]
     }
   }
-}
-
-provider "aws" {
-  alias  = "us_east_1"
-  region = "us-east-1"
 }
 
 resource "aws_iam_role" "cross_account_role" {
@@ -424,6 +420,10 @@ resource "aws_cur_report_definition" "costand_usage_report" {
   s3_prefix                  = "daily-v1"
   s3_region                  = aws_s3_bucket.cost_and_usage_report_bucket.region
   time_unit                  = "DAILY"
+
+  depends_on = [
+    aws_s3_bucket_policy.cost_and_usage_report_bucket_policy
+  ]
 }
 
 
