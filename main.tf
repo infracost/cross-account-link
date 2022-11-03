@@ -11,7 +11,7 @@ resource "aws_iam_role" "cross_account_role" {
   assume_role_policy = jsonencode({
     Statement = [
       {
-        Effect : "Allow", Principal : { AWS : var.infracost_account }, Action : ["sts:AssumeRole"],
+        Effect : "Allow", Principal : { AWS : "arn:aws:iam::${var.infracost_account}:root" }, Action : ["sts:AssumeRole"],
         Condition : { StringEquals : { "sts:ExternalId" : var.infracost_external_id } }
       }
     ]
