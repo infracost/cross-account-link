@@ -11,13 +11,12 @@ resource "aws_iam_role" "cross_account_role" {
   assume_role_policy = jsonencode({
     Statement = [
       {
-        Effect : "Allow", Principal : { AWS : "arn:aws:iam::${var.infracost_account}:root" }, Action : ["sts:AssumeRole"],
+        Effect : "Allow", Principal : { AWS : "arn:aws:iam::${var.infracost_account}:root" }, Action : "sts:AssumeRole",
         Condition : { StringEquals : { "sts:ExternalId" : var.infracost_external_id } }
       }
     ]
   })
 
-  managed_policy_arns = ["arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"]
   path                = "/"
 
   inline_policy {
@@ -322,6 +321,12 @@ resource "aws_iam_role" "cross_account_role" {
       ]
     })
   }
+}
+
+resource "aws_iam_policy_attachment" "cross_account_view_only" {
+  name       = "infracost-cross-account-view-only"
+  roles      = [aws_iam_role.cross_account_role.name]
+  policy_arn = "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"
 }
 
 resource "aws_s3_bucket" "cost_and_usage_report_bucket" {
