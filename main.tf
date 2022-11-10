@@ -1,14 +1,15 @@
 terraform {
   required_providers {
     aws = {
-      source = "hashicorp/aws"
-      configuration_aliases = [ aws.us_east_1 ]
+      source                = "hashicorp/aws"
+      configuration_aliases = [aws.us_east_1]
     }
   }
 }
 
 resource "aws_iam_role" "cross_account_role" {
   assume_role_policy = jsonencode({
+    Version : "2012-10-17",
     Statement = [
       {
         Effect : "Allow", Principal : { AWS : "arn:aws:iam::${var.infracost_account}:root" }, Action : "sts:AssumeRole",
@@ -17,12 +18,13 @@ resource "aws_iam_role" "cross_account_role" {
     ]
   })
 
-  path                = "/"
+  path = "/"
 
   inline_policy {
     name   = "root"
     policy = jsonencode({
-      Version : "2012-10-17", Statement : [
+      Version : "2012-10-17",
+      Statement : [
         {
           Action : [
             "aws-portal:View*",
@@ -45,7 +47,8 @@ resource "aws_iam_role" "cross_account_role" {
   inline_policy {
     name   = "InfracostCloudWatchMetricsReadOnly"
     policy = jsonencode({
-      Version : "2012-10-17", Statement : [
+      Version : "2012-10-17",
+      Statement : [
         {
           Action : ["logs:List*", "logs:Describe*", "logs:StartQuery", "logs:StopQuery", "logs:Filter*", "logs:Get*"],
           Resource : "arn:aws:logs:*:*:log-group:/aws/containerinsights/*", Effect : "Allow",
@@ -65,7 +68,8 @@ resource "aws_iam_role" "cross_account_role" {
   inline_policy {
     name   = "InfracostAdditionalResourceReadOnly"
     policy = jsonencode({
-      Version : "2012-10-17", Statement : [
+      Version : "2012-10-17",
+      Statement : [
         {
           Effect : "Allow", Resource : "*", Action : [
           "a4b:List*",
