@@ -2,76 +2,108 @@ terraform {
   required_providers {
     aws = {
       source                = "hashicorp/aws"
-      configuration_aliases = [aws.us_east_1]
+      configuration_aliases = [aws]
     }
   }
 }
 
-resource "aws_iam_role" "cross_account_role" {
-  assume_role_policy = jsonencode({
+resource "aws_iam_policy" "infracost_cost_readonly_policy" {
+  name        = "infracost-cost-readonly"
+  path        = "/"
+  description = "Infracost cost exploration read-only policy"
+
+  policy = jsonencode({
     Version : "2012-10-17",
-    Statement = [
+    Statement : [
       {
-        Effect : "Allow", Principal : { AWS : "arn:aws:iam::${var.infracost_account}:root" }, Action : "sts:AssumeRole",
-        Condition : { StringEquals : { "sts:ExternalId" : var.infracost_external_id } }
+        Action : [
+          "aws-portal:View*",
+          "budgets:Describe*",
+          "budgets:View*",
+          "ce:Get*",
+          "ce:Describe*",
+          "ce:List*",
+          "cost-optimization-hub:List*",
+          "cost-optimization-hub:Get*",
+          "compute-optimizer:Export*",
+          "compute-optimizer:Get*",
+          "ec2:Describe*",
+          "ec2:Get*",
+          "ec2:List*",
+          "ecs:Describe*",
+          "ecs:List*",
+          "eks:Describe*",
+          "eks:List*",
+          "autoscaling:Describe*",
+          "autoscaling-plans:Describe*",
+          "rds:Describe*",
+          "rds:Get*",
+          "rds:List*",
+          "trustedadvisor:Describe*",
+          "trustedadvisor:Get*",
+          "trustedadvisor:List*",
+          "cur:Describe*",
+          "pricing:*",
+          "organizations:Describe*",
+          "organizations:List*",
+          "savingsplans:Describe*"
+        ],
+        Resource : "*",
+        Effect : "Allow",
+        Sid : "InfracostBillingReadOnly"
       }
     ]
   })
+}
 
-  path = "/"
+resource "aws_iam_policy" "infracost_cloudwatch_readonly_policy" {
 
-  inline_policy {
-    name   = "root"
-    policy = jsonencode({
-      Version : "2012-10-17",
-      Statement : [
-        {
-          Action : [
-            "aws-portal:View*",
-            "budgets:Describe*",
-            "budgets:View*",
-            "ce:Get*",
-            "ce:Describe*",
-            "ce:List*",
-            "cur:Describe*",
-            "pricing:*",
-            "organizations:Describe*",
-            "organizations:List*",
-            "savingsplans:Describe*"
-          ], Resource : "*", Effect : "Allow", Sid : "InfracostBillingReadOnly"
-        }
-      ]
-    })
-  }
+  count = var.include_cloudwatch_readonly_policy ? 1 : 0
 
-  inline_policy {
-    name   = "InfracostCloudWatchMetricsReadOnly"
-    policy = jsonencode({
-      Version : "2012-10-17",
-      Statement : [
-        {
-          Action : ["logs:List*", "logs:Describe*", "logs:StartQuery", "logs:StopQuery", "logs:Filter*", "logs:Get*"],
-          Resource : "arn:aws:logs:*:*:log-group:/aws/containerinsights/*", Effect : "Allow",
-          Sid : "InfracostContainerInsightsReadOnly"
-        }, {
-          Action : ["logs:GetQueryResults", "logs:DescribeLogGroups"],
-          Resource : "arn:aws:logs:*:*:log-group::log-stream:*", Effect : "Allow",
-          Sid : "InfracostContainerInsightsLogStream"
-        }, {
-          Action : ["autoscaling:Describe*", "cloudwatch:Describe*", "cloudwatch:Get*", "cloudwatch:List*"],
-          Resource : "*", Effect : "Allow", Sid : "InfracostContainerMetricsAccess"
-        }
-      ]
-    })
-  }
+  name        = "infracost-cloudwatch-readonly"
+  path        = "/"
+  description = "Infracost CloudWatch read-only policy"
 
-  inline_policy {
-    name   = "InfracostAdditionalResourceReadOnly"
-    policy = jsonencode({
-      Version : "2012-10-17",
-      Statement : [
-        {
-          Effect : "Allow", Resource : "*", Action : [
+  policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Sid : "InfracostContainerInsightsReadOnly",
+        Effect : "Allow",
+        Action : ["logs:List*", "logs:Describe*", "logs:StartQuery", "logs:StopQuery", "logs:Filter*", "logs:Get*"],
+        Resource : "arn:aws:logs:*:*:log-group:/aws/containerinsights/*",
+      },
+      {
+        Sid : "InfracostContainerInsightsLogStream",
+        Effect : "Allow",
+        Action : ["logs:GetQueryResults", "logs:DescribeLogGroups"],
+        Resource : "arn:aws:logs:*:*:log-group::log-stream:*"
+      },
+      {
+        Sid : "InfracostContainerMetricsAccess"
+        Effect : "Allow",
+        Action : ["autoscaling:Describe*", "cloudwatch:Describe*", "cloudwatch:Get*", "cloudwatch:List*"],
+        Resource : "*"
+      }
+    ]
+  })
+}
+
+resource "aws_iam_policy" "infracost_services_readonly_policy" {
+
+  count = var.include_services_readonly_policy ? 1 : 0
+
+  name        = "infracost-services-readonly"
+  path        = "/"
+  description = "Infracost service read-only policy"
+
+  policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Effect : "Allow",
+        Resource : "*",
+        Action : [
           "a4b:List*",
           "a4b:Search*",
           "acm:Describe*",
@@ -99,7 +131,6 @@ resource "aws_iam_role" "cross_account_role" {
           "batch:Describe*",
           "budgets:Describe*",
           "budgets:View*",
-          "ce:Get*",
           "chatbot:Describe*",
           "chime:List*",
           "chime:Retrieve*",
@@ -321,135 +352,42 @@ resource "aws_iam_role" "cross_account_role" {
           "worklink:Describe*",
           "worklink:List*"
         ]
-        }
-      ]
-    })
-  }
-}
-
-resource "aws_iam_policy_attachment" "cross_account_view_only" {
-  name       = "infracost-cross-account-view-only"
-  roles      = [aws_iam_role.cross_account_role.name]
-  policy_arn = "arn:aws:iam::aws:policy/job-function/ViewOnlyAccess"
-}
-
-resource "aws_s3_bucket" "cost_and_usage_report_bucket" {
-  acl    = "private"
-  bucket = join("-", ["infracost-cur", var.infracost_external_id])
-}
-
-resource "aws_s3_bucket_lifecycle_configuration" "cost_and_usage_report_bucket" {
-  bucket = aws_s3_bucket.cost_and_usage_report_bucket.id
-
-  rule {
-    id     = "ExpireOldObjects"
-    status = "Enabled"
-
-    expiration {
-      days = 200
-    }
-  }
-}
-
-data "aws_region" "current" {}
-
-resource "aws_s3_bucket_notification" "sns_topic" {
-  bucket = aws_s3_bucket.cost_and_usage_report_bucket.id
-
-  topic {
-    topic_arn = "arn:aws:sns:${data.aws_region.current.name}:${var.infracost_account}:cur-uploaded"
-
-    events = [
-      "s3:ObjectCreated:*",
-    ]
-
-    filter_suffix = "Manifest.json"
-  }
-}
-
-resource "aws_s3_bucket_public_access_block" "cost_and_usage_report_bucket" {
-  bucket = aws_s3_bucket.cost_and_usage_report_bucket.id
-
-  block_public_acls       = true
-  block_public_policy     = true
-  ignore_public_acls      = true
-  restrict_public_buckets = true
-}
-
-resource "aws_s3_bucket_policy" "cost_and_usage_report_bucket_policy" {
-  bucket = aws_s3_bucket.cost_and_usage_report_bucket.id
-  policy = jsonencode({
-    "Version" : "2012-10-17",
-    "Statement" : [
-      {
-        "Effect" : "Allow",
-        "Principal" : {
-          "Service" : "billingreports.amazonaws.com"
-        },
-        "Action" : [
-          "s3:GetBucketAcl",
-          "s3:GetBucketPolicy"
-        ],
-        "Resource" : "arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}"
-      },
-      {
-        "Effect" : "Allow",
-        "Principal" : {
-          "Service" : "billingreports.amazonaws.com"
-        },
-        "Action" : "s3:PutObject",
-        "Resource" : "arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}/*"
-      },
-      {
-        Action : [
-          "s3:GetObject",
-          "s3:GetObjectAcl"
-        ],
-        Effect : "Allow",
-        Resource : "arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}/*",
-        Principal : {
-          AWS : aws_iam_role.cross_account_role.arn
-        }
       }
     ]
   })
 }
 
-resource "aws_cur_report_definition" "costand_usage_report" {
-  provider = aws.us_east_1
-
-  additional_artifacts       = []
-  additional_schema_elements = ["RESOURCES"]
-  compression                = "GZIP"
-  format                     = "textORcsv"
-  refresh_closed_reports     = true
-  report_name                = join("", ["InfracostReport", var.infracost_external_id])
-  report_versioning          = "OVERWRITE_REPORT"
-  s3_bucket                  = aws_s3_bucket.cost_and_usage_report_bucket.id
-  s3_prefix                  = "daily-v1"
-  s3_region                  = aws_s3_bucket.cost_and_usage_report_bucket.region
-  time_unit                  = "DAILY"
-
-  depends_on = [
-    aws_s3_bucket_policy.cost_and_usage_report_bucket_policy
-  ]
-}
-
-
-resource "aws_iam_policy" "object_get_iam_policy" {
-  name   = "ObjectGetCostandUsageReports"
-  policy = jsonencode({
-    Version   = "2012-10-17"
+resource "aws_iam_role" "cross_account_role" {
+  name = "infracost-readonly"
+  assume_role_policy = jsonencode({
+    Version : "2012-10-17",
     Statement = [
       {
-        Effect : "Allow", Action : ["s3:GetObject", "s3:GetObjectAcl"],
-        Resource : ["arn:aws:s3:::${aws_s3_bucket.cost_and_usage_report_bucket.id}/*"]
+        Effect : "Allow", Principal : { AWS : "arn:aws:iam::${var.infracost_account}:root" }, Action : "sts:AssumeRole",
+        Condition : { StringEquals : { "sts:ExternalId" : var.infracost_external_id } }
       }
     ]
   })
 }
 
-resource "aws_iam_role_policy_attachment" "object_get_iam_policy_attach" {
+
+# Attach policies to the role
+resource "aws_iam_role_policy_attachment" "infracost_cost_policy_attachment" {
+  policy_arn = aws_iam_policy.infracost_cost_readonly_policy.arn
   role       = aws_iam_role.cross_account_role.name
-  policy_arn = aws_iam_policy.object_get_iam_policy.arn
 }
+
+resource "aws_iam_role_policy_attachment" "infracost_cloudwatch_readonly_attachment" {
+  count = var.include_cloudwatch_readonly_policy ? 1 : 0
+
+  policy_arn = aws_iam_policy.infracost_cloudwatch_readonly_policy[count.index].arn
+  role       = aws_iam_role.cross_account_role.name
+}
+
+resource "aws_iam_role_policy_attachment" "infracost_services_readonly_policy_attachment" {
+  count = var.include_services_readonly_policy ? 1 : 0
+
+  policy_arn = aws_iam_policy.infracost_services_readonly_policy[count.index].arn
+  role       = aws_iam_role.cross_account_role.name
+}
+
