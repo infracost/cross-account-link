@@ -34,7 +34,7 @@ output "infracost_cross_account_role_arn" {
 Once you've run this module in your infrastructure you'll need to email Infracost with the following information:
 
 ```text
-To: hello@infracost.io
+To: support@infracost.io
 Subject: Enable AWS read-only access for Infracost Cloud
 
 Body:
