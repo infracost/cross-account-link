@@ -7,10 +7,10 @@ terraform {
   }
 }
 
-resource "aws_iam_policy" "infracost_cost_readonly_policy" {
-  name        = "infracost-cost-readonly"
+resource "aws_iam_policy" "infracost_readonly_policy" {
+  name        = "infracost-readonly"
   path        = "/"
-  description = "Infracost cost exploration read-only policy"
+  description = "Infracost read-only policy"
 
   policy = jsonencode({
     Version : "2012-10-17",
@@ -46,7 +46,7 @@ resource "aws_iam_policy" "infracost_cost_readonly_policy" {
         ],
         Resource : "*",
         Effect : "Allow",
-        Sid : "InfracostBillingReadOnly"
+        Sid : "InfracostReadOnly"
       }
     ]
   })
@@ -67,7 +67,7 @@ resource "aws_iam_role" "cross_account_role" {
 
 
 # Attach policies to the role
-resource "aws_iam_role_policy_attachment" "infracost_cost_policy_attachment" {
-  policy_arn = aws_iam_policy.infracost_cost_readonly_policy.arn
+resource "aws_iam_role_policy_attachment" "infracost_policy_attachment" {
+  policy_arn = aws_iam_policy.infracost_readonly_policy.arn
   role       = aws_iam_role.cross_account_role.name
 }

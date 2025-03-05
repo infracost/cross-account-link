@@ -1,16 +1,14 @@
-# Infracost AWS Read Only Role
+# Infracost AWS Read-Only Role
 
-A Terraform module to set up an AWS cross-account link for Infracost Cloud; this is required to enable in PR recommendations for in cloud optimizations.
+A Terraform module to set up an AWS cross-account link for Infracost Cloud. This gives Infracost read-only access to AWS APIs to fetch recommendations from AWS Compute Optimizer. This needs to be run against **all AWS accounts** that have recommendations as Infracost also requires details of the resources that the recommendations apply to. See the [main.tf](main.tf) file for the required permissions. 
 
-## Scope
+## Prerequisites
+- You have an AWS account
+- You need your Infracost Cloud organization ID - find this in the Org Settings of [Infracost Cloud](https://dashboard.infracost.io)
 
-It is important to ensure that you have reviewed the permissions that this module will create in your AWS account. This module will create an IAM role in your AWS account that will allow Infracost to read compute optimization, trusted advisor and your AWS Cost Explorer data.
+## Usage instructions
 
-This role will also have read-only access to services within your AWS account and a subset of CloudWatch metrics.
-
-## How to use
-
-Import the module into your codebase and provide the `infracost_external_id` variable which points to your Infracost Cloud organization ID.
+1. Use the module to create the cross account role in all AWS accounts that have recommendations. Pass the `infracost_external_id` variable (which points to your Infracost organization ID) to the module.
 
 ```terraform
 provider "aws" {
@@ -31,18 +29,20 @@ output "infracost_cross_account_role_arn" {
 }
 ```
 
-Once you've run this module in your infrastructure you'll need to email Infracost with the following information:
+2. Run `terraform init` and `terraform apply` to create the cross account role in all AWS accounts.
+
+3. Email the `infracost_cross_account_role_arn` outputs to Infracost:
 
 ```text
-To: hello@infracost.io
+To: support@infracost.io
 Subject: Enable AWS read-only access for Infracost Cloud
 
 Body:
 Hi, my name is Rafa and I'm the DevOps Lead at ACME Corporation.
-Please enable the AWS actual costs feature for our organization:
 
 - Infracost Cloud org ID: $YOUR_INFRACOST_ORGANIZATION_ID
-- Our AWS Cross Account ARN: <terraform output infracost_cross_account_role_arn>
+- Our AWS Cross Account ARNs are:
+<terraform output infracost_cross_account_role_arn>
 
 Regards,
 Rafa
