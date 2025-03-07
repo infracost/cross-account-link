@@ -1,6 +1,6 @@
 # Infracost AWS Read-Only Role
 
-A Terraform module to set up an AWS cross-account link for Infracost Cloud. This gives Infracost read-only access to AWS APIs to fetch recommendations from AWS Compute Optimizer. This needs to be run against **all AWS accounts** that have recommendations as Infracost also requires details of the resources that the recommendations apply to. See the [main.tf](main.tf) file for the required permissions. 
+A Terraform module to set up an AWS cross-account link for Infracost Cloud. This gives Infracost read-only access to AWS APIs to fetch recommendations from AWS Compute Optimizer. This needs to be run against **all AWS accounts** that have recommendations as Infracost also requires details of the resources that the recommendations apply to. See the [main.tf](main.tf) file for the required permissions.
 
 ## Prerequisites
 - You have an AWS account
@@ -16,7 +16,7 @@ provider "aws" {
 }
 
 module "infracost" {
-  source                = "github.com/infracost/cross-account-link"
+  source                = "github.com/infracost/cross-account-link?v0.2.1"
   infracost_external_id = "INFRACOST_ORGANIZATION_ID"
 
   providers = {
@@ -47,3 +47,7 @@ Hi, my name is Rafa and I'm the DevOps Lead at ACME Corporation.
 Regards,
 Rafa
 ```
+
+## Updates
+
+When new FinOps policies or features are added, this module may need to be updated to include the new permissions. We will notify you when this is the case so you can update the version of the module.
