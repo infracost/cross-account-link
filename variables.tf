@@ -8,3 +8,9 @@ variable "infracost_account" {
   type        = string
   default     = "237144093413"
 }
+
+variable "is_management_account" {
+  description = "Whether this is the management account. If true, this sets up access to recommendations, cost, usage and pricing data. Otherwise, this sets up read-only access to a limited set of resources."
+  type        = bool
+  default     = false
+}
