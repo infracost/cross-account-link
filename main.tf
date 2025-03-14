@@ -61,7 +61,7 @@ resource "aws_iam_policy" "management_account_readonly_policy" {
 
 resource "aws_iam_role_policy_attachment" "management_account_readonly_policy_attachment" {
   count      = var.is_management_account ? 1 : 0
-  policy_arn = aws_iam_policy.management_account_readonly_policy.arn
+  policy_arn = aws_iam_policy.management_account_readonly_policy[count.index].arn
   role       = aws_iam_role.cross_account_role.name
 }
 
@@ -106,6 +106,6 @@ resource "aws_iam_policy" "member_account_readonly_policy" {
 # Attach policies to the role
 resource "aws_iam_role_policy_attachment" "member_account_readonly_policy_attachment" {
   count      = var.is_management_account ? 0 : 1
-  policy_arn = aws_iam_policy.member_account_readonly_policy.arn
+  policy_arn = aws_iam_policy.member_account_readonly_policy[count.index].arn
   role       = aws_iam_role.cross_account_role.name
 }
