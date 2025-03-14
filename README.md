@@ -73,7 +73,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
 
     Regards,
     Rafa
-```
+    ```
 
 ## Updates
 
