@@ -49,7 +49,19 @@ resource "aws_iam_policy" "management_account_readonly_policy" {
           "pricing:Get*",
           "pricing:List*",
           "pricing:Describe*",
-          "bcm-pricing-calculator:*"
+          "bcm-pricing-calculator:*",
+          // Required for Compute Optimizer
+          // (https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscomputeoptimizer.html)
+          "ec2:DescribeInstances",
+          "ec2:DescribeVolumes",
+          "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
+          "rds:DescribeDBInstances",
+          "rds:DescribeDBClusters",
+          "ecs:ListClusters",
+          "ecs:ListServices",
+          "lambda:ListFunctions",
+          "lambda:ListProvisionedConcurrencyConfigs"
         ],
         Resource : "*",
         Effect : "Allow",
@@ -81,6 +93,7 @@ resource "aws_iam_policy" "member_account_readonly_policy" {
           "ec2:DescribeVolumes",
           "autoscaling:DescribeLaunchConfigurations",
           "autoscaling:DescribeAutoScalingGroups",
+          "autoscaling:DescribeAutoScalingInstances",
           "rds:DescribeDBInstances",
           "rds:DescribeDBClusters",
           "eks:ListClusters",
@@ -93,7 +106,8 @@ resource "aws_iam_policy" "member_account_readonly_policy" {
           "ecs:DescribeServices",
           "ecs:ListTaskDefinitions",
           "ecs:DescribeTaskDefinition",
-          "lambda:ListFunctions"
+          "lambda:ListFunctions",
+          "lambda:ListProvisionedConcurrencyConfigs",
         ],
         Resource : "*",
         Effect : "Allow",
