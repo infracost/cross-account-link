@@ -17,7 +17,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_management_account" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.3.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.4.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = true
       providers = {
