@@ -14,3 +14,9 @@ variable "is_management_account" {
   type        = bool
   default     = false
 }
+
+variable "role_suffix" {
+  description = "The suffix for the role name. This can be used if you need to create multiple roles in the same account for testing purposes."
+  type        = string
+  default     = ""
+}
