@@ -9,7 +9,7 @@ terraform {
 
 
 resource "aws_iam_role" "cross_account_role" {
-  name = "infracost-readonly"
+  name = "infracost-readonly${var.role_suffix}"
   assume_role_policy = jsonencode({
     Version : "2012-10-17",
     Statement = [
@@ -23,7 +23,7 @@ resource "aws_iam_role" "cross_account_role" {
 
 resource "aws_iam_policy" "management_account_readonly_policy" {
   count       = var.is_management_account ? 1 : 0
-  name        = "infracost-management-account-readonly"
+  name        = "infracost-management-account-readonly${var.role_suffix}"
   path        = "/"
   description = "Infracost management account read-only policy"
 
@@ -79,7 +79,7 @@ resource "aws_iam_role_policy_attachment" "management_account_readonly_policy_at
 
 resource "aws_iam_policy" "member_account_readonly_policy" {
   count       = var.is_management_account ? 0 : 1
-  name        = "infracost-member-account-readonly"
+  name        = "infracost-member-account-readonly${var.role_suffix}"
   path        = "/"
   description = "Infracost member account read-only policy"
 
