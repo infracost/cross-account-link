@@ -21,8 +21,8 @@ variable "role_suffix" {
   default     = ""
 }
 
-variable "storage_lens_bucket_arns" {
-  description = "List of S3 bucket ARNs to grant read access to for Storage Lens data. Only applies to the management account."
+variable "s3_bucket_arns" {
+  description = "List of S3 bucket ARNs to grant access for cloud data ingestion."
   type        = list(string)
   default     = []
 }
