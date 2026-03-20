@@ -32,9 +32,11 @@ resource "aws_iam_policy" "management_account_readonly_policy" {
     Statement : [
       {
         Action : [
-          // For getting the account names and tags
+          // For getting the organization, account names, tags, and trusted access enabled services
           "organizations:ListAccounts",
           "organizations:ListTagsForResource",
+          "organizations:DescribeOrganization",
+          "organizations:ListAWSServiceAccessForOrganization",
           // For getting recommendations
           "compute-optimizer:Get*",
           "cost-optimization-hub:List*",
@@ -50,6 +52,13 @@ resource "aws_iam_policy" "management_account_readonly_policy" {
           "pricing:List*",
           "pricing:Describe*",
           "bcm-pricing-calculator:*",
+          // Required for discovering BCM data exports and Storage Lens configurations.
+          "bcm-data-exports:List*",
+          "bcm-data-exports:Get*",
+          "s3:ListStorageLensConfigurations",
+          "s3:GetStorageLensConfiguration",
+          "s3:GetStorageLensConfigurationTagging",
+          "s3:GetStorageLensDashboard",
           // Required for Compute Optimizer
           // (https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscomputeoptimizer.html)
           "ec2:DescribeInstances",
