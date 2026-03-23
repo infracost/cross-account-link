@@ -17,12 +17,16 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_management_account" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.5.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.7.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = true
       providers = {
         aws = aws.management_account
       }
+      // Optional: add S3 bucket ARNs for CUR, FOCUS, or S3 Storage Lens data exports access
+      s3_bucket_arns = [
+        "arn:aws:s3:::infracost-exports-<AWS_ACCOUNT_ID>"
+      ]
     }
 
     output "infracost_management_account_cross_account_role_arn" {
@@ -39,7 +43,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_member_account_1" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.3.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.7.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = false
       providers = {
@@ -54,9 +58,9 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
     ```
 
-2. Run `terraform init` and `terraform apply` to create the cross account role in all AWS accounts.
+3. Run `terraform init` and `terraform apply` to create the cross account role in all AWS accounts.
 
-3. Email the `infracost_management_account_cross_account_role_arn` and `infracost_member_account_cross_account_role_arns` outputs to Infracost:
+4. Email the `infracost_management_account_cross_account_role_arn` and `infracost_member_account_cross_account_role_arns` outputs to Infracost:
 
     ```text
     To: support@infracost.io
