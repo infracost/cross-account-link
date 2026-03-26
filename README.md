@@ -17,15 +17,15 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_management_account" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.7.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.8.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = true
       providers = {
         aws = aws.management_account
       }
-      // Optional: add S3 bucket ARNs for CUR, FOCUS, or S3 Storage Lens data exports access
+      // Optional: add S3 bucket ARNs to expose additional data to Infracost.
       s3_bucket_arns = [
-        "arn:aws:s3:::infracost-exports-<AWS_ACCOUNT_ID>"
+        "arn:aws:s3:::my-custom-export"
       ]
     }
 
@@ -43,7 +43,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_member_account_1" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.7.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.8.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = false
       providers = {
@@ -82,3 +82,37 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
 ## Updates
 
 When new FinOps policies or features are added, this module may need to be updated to include the new permissions. We will notify you when this is the case so you can update the version of the module.
+
+## Data exports
+
+Data exports help Infracost source real billing and usage data from your AWS account to enable improved accuracy.
+
+### Prerequisites
+
+- Modules must set `is_management_account = true`.
+- It is required that [S3 Storage Lens trusted access](https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage_lens_with_organizations_enabling_trusted_access.html) is enabled in your AWS Organization for Storage Lens exports.
+
+### Usage
+
+Setting `enable_data_exports = true` provisions the following:
+- A daily Billing and Cost Management (BCM) FOCUS 1.2 export for visibility into resource costs and usage, with a dedicated S3 bucket.
+- An S3 Storage Lens configuration for organization-wide visibility into bucket usage, with a dedicated S3 bucket.
+- Read-only access to both buckets for the Infracost cross-account role.
+
+```terraform
+module "infracost_management_account" {
+  source                = "github.com/infracost/cross-account-link?ref=v0.8.0"
+  infracost_external_id = "INFRACOST_ORGANIZATION_ID"
+  is_management_account = true
+  enable_data_exports   = true
+  providers = {
+    aws = aws.management_account
+  }
+}
+```
+
+### Data ownership and lifecycle
+
+Data remains under the ownership of the customer AWS account. Infracost is permitted solely read-only access.
+
+Each data exports bucket is configured with a 365-day lifecycle before objects are deleted. Intelligent tiering is used to reduce storage costs.

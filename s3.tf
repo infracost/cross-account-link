@@ -1,5 +1,17 @@
+locals {
+  all_s3_bucket_arns = concat(
+    var.s3_bucket_arns,
+    var.enable_data_exports
+    ? [
+      module.billing_and_cost_management_export[0].bucket_arn,
+      module.s3_storage_lens_export[0].bucket_arn
+    ]
+    : []
+  )
+}
+
 resource "aws_iam_policy" "s3_access_policy" {
-  count       = length(var.s3_bucket_arns) > 0 ? 1 : 0
+  count       = length(local.all_s3_bucket_arns) > 0 ? 1 : 0
   name        = "infracost-s3-access${var.role_suffix}"
   path        = "/"
   description = "Infracost S3 read-only policy"
@@ -14,7 +26,7 @@ resource "aws_iam_policy" "s3_access_policy" {
           "s3:GetBucketLocation",
           "s3:ListBucket",
         ]
-        Resource : var.s3_bucket_arns
+        Resource : local.all_s3_bucket_arns
       },
       {
         Sid : "InfracostS3ObjectAccess"
@@ -23,14 +35,14 @@ resource "aws_iam_policy" "s3_access_policy" {
           "s3:GetObject",
           "s3:HeadObject",
         ]
-        Resource : [for arn in var.s3_bucket_arns : "${arn}/*"]
+        Resource : [for arn in local.all_s3_bucket_arns : "${arn}/*"]
       }
     ]
   })
 }
 
 resource "aws_iam_role_policy_attachment" "s3_access_policy_attachment" {
-  count      = length(var.s3_bucket_arns) > 0 ? 1 : 0
+  count      = length(local.all_s3_bucket_arns) > 0 ? 1 : 0
   policy_arn = aws_iam_policy.s3_access_policy[count.index].arn
   role       = aws_iam_role.cross_account_role.name
 }

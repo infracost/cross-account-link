@@ -7,6 +7,9 @@ terraform {
   }
 }
 
+data "aws_caller_identity" "current" {}
+data "aws_region" "current" {}
+data "aws_organizations_organization" "current" {}
 
 resource "aws_iam_role" "cross_account_role" {
   name = "infracost-readonly${var.role_suffix}"

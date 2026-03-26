@@ -26,3 +26,9 @@ variable "s3_bucket_arns" {
   type        = list(string)
   default     = []
 }
+
+variable "enable_data_exports" {
+  description = "Whether to enable billing and usage data exports provisioning."
+  type        = bool
+  default     = false
+}
