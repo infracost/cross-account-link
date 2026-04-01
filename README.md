@@ -4,11 +4,11 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
 
 ## Prerequisites
 - You have an AWS account
-- You need your Infracost Cloud organization ID - find this in the Org Settings of [Infracost Cloud](https://dashboard.infracost.io)
+- You need your Infracost Cloud Enterprise ID - find this in the Org Settings of [Infracost Cloud](https://dashboard.infracost.io)
 
 ## Usage instructions
 
-1. Use the module with `is_management_account = true` to create the cross account role on your management account. Pass the `infracost_external_id` variable (which points to your Infracost organization ID) to the module.
+1. Use the module with `is_management_account = true` to create the cross account role on your management account. Pass the `infracost_enterprise_id` variable (which points to your Infracost Enterprise ID) to the module.
 
     ```terraform
     provider "aws" {
@@ -17,16 +17,12 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_management_account" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.8.0"
-      infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
-      is_management_account      = true
+      source                  = "github.com/infracost/cross-account-link?ref=v0.9.0"
+      infracost_enterprise_id = "INFRACOST_ENTERPRISE_ID"
+      is_management_account   = true
       providers = {
         aws = aws.management_account
       }
-      // Optional: add S3 bucket ARNs to expose additional data to Infracost.
-      s3_bucket_arns = [
-        "arn:aws:s3:::my-custom-export"
-      ]
     }
 
     output "infracost_management_account_cross_account_role_arn" {
@@ -34,7 +30,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
     ```
 
-2. Use the module with `is_management_account = false` to create the cross account role on all member accounts. As above, pass the `infracost_external_id` variable (which points to your Infracost organization ID) to the module.
+2. Use the module with `is_management_account = false` to create the cross account role on all member accounts. As above, pass the `infracost_enterprise_id` variable (which points to your Infracost Enterprise ID) to the module.
 
     ```terraform
     provider "aws" {
@@ -43,9 +39,9 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_member_account_1" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.8.0"
-      infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
-      is_management_account      = false
+      source                  = "github.com/infracost/cross-account-link?ref=v0.9.0"
+      infracost_enterprise_id = "INFRACOST_ENTERPRISE_ID"
+      is_management_account   = false
       providers = {
         aws = aws.member_account_1
       }
@@ -69,7 +65,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     Body:
     Hi, my name is Rafa and I'm the DevOps Lead at ACME Corporation.
 
-    - Infracost Cloud org ID: $YOUR_INFRACOST_ORGANIZATION_ID
+    - Infracost Cloud Enterprise ID: $YOUR_INFRACOST_ENTERPRISE_ID
     - Our management account Cross Account ARN is:
     <terraform output infracost_management_account_cross_account_role_arn>
     - Our member accounts Cross Account ARNs are:
@@ -83,7 +79,9 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
 
 When new FinOps policies or features are added, this module may need to be updated to include the new permissions. We will notify you when this is the case so you can update the version of the module.
 
-## Data exports
+___
+
+## Optional: Data exports
 
 Data exports help Infracost source real billing and usage data from your AWS account to enable improved accuracy.
 
@@ -101,10 +99,10 @@ Setting `enable_data_exports = true` provisions the following:
 
 ```terraform
 module "infracost_management_account" {
-  source                = "github.com/infracost/cross-account-link?ref=v0.8.0"
-  infracost_external_id = "INFRACOST_ORGANIZATION_ID"
+  source                = "github.com/infracost/cross-account-link?ref=v0.9.0"
+  infracost_enterprise_id = "INFRACOST_ENTERPRISE_ID"
   is_management_account = true
-  enable_data_exports   = true
+  enable_data_exports   = true # <-- Set this variable
   providers = {
     aws = aws.management_account
   }
@@ -116,3 +114,31 @@ module "infracost_management_account" {
 Data remains under the ownership of the customer AWS account. Infracost is permitted solely read-only access.
 
 Each data exports bucket is configured with a 365-day lifecycle before objects are deleted. Intelligent tiering is used to reduce storage costs.
+
+___
+
+## Optional: Custom data exports
+
+If you intend to manage your own data exports or provide additional custom data to Infracost. You can enable access for specific S3 bucket ARNs. When doing so, please contact [support@infracost.io](mailto:support@infracost.io) to ensure your use case and configuration are supported.
+
+### Usage
+
+```terraform
+module "infracost_management_account" {
+  source                = "github.com/infracost/cross-account-link?ref=v0.9.0"
+  infracost_enterprise_id = "INFRACOST_ENTERPRISE_ID"
+  is_management_account = true
+  providers = {
+    aws = aws.management_account
+  }
+  s3_bucket_arns = [
+    "arn:aws:s3:::my-custom-export" # <-- Add any custom S3 ARNs
+  ]
+}
+```
+
+If taking this route, please provide the following details to Infracost:
+
+| Field | Example |
+| --- | --- |
+| AWS S3 bucket ARN | `arn:aws:s3:::my-custom-export` |

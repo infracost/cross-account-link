@@ -18,7 +18,7 @@ resource "aws_iam_role" "cross_account_role" {
     Statement = [
       {
         Effect : "Allow", Principal : { AWS : "arn:aws:iam::${var.infracost_account}:root" }, Action : "sts:AssumeRole",
-        Condition : { StringEquals : { "sts:ExternalId" : var.infracost_external_id } }
+        Condition : { StringEquals : { "sts:ExternalId" : var.infracost_enterprise_id } }
       }
     ]
   })

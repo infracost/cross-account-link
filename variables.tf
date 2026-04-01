@@ -1,5 +1,5 @@
-variable "infracost_external_id" {
-  description = "Your Infracost Organization ID (get it from Org Settings under Settings in the https://dashboard.infracost.io)"
+variable "infracost_enterprise_id" {
+  description = "Your Infracost Enterprise ID (get it from Org Settings under Settings in the https://dashboard.infracost.io)"
   type        = string
 }
 
