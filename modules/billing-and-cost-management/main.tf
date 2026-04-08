@@ -111,6 +111,7 @@ resource "aws_bcmdataexports_export" "daily_cost_optimization" {
       table_configurations = {
         "COST_OPTIMIZATION_RECOMMENDATIONS" = {
           "INCLUDE_ALL_RECOMMENDATIONS" = "TRUE"
+          "FILTER"                      = "{}"
         }
       }
     }
