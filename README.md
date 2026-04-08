@@ -17,7 +17,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_management_account" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.8.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.9.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = true
       providers = {
@@ -43,7 +43,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_member_account_1" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.8.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.9.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = false
       providers = {
@@ -95,13 +95,15 @@ Data exports help Infracost source real billing and usage data from your AWS acc
 ### Usage
 
 Setting `enable_data_exports = true` provisions the following:
-- A daily Billing and Cost Management (BCM) FOCUS 1.2 export for visibility into resource costs and usage, with a dedicated S3 bucket.
-- An S3 Storage Lens configuration for organization-wide visibility into bucket usage, with a dedicated S3 bucket.
+- A daily BCM FOCUS 1.2 billing and cost export.
+- A daily BCM Cost Optimization Hub export with idle resource and savings recommendations.
+- An S3 Storage Lens configuration for organization-wide bucket usage metrics.
+- Dedicated S3 buckets for the above exports.
 - Read-only access to both buckets for the Infracost cross-account role.
 
 ```terraform
 module "infracost_management_account" {
-  source                = "github.com/infracost/cross-account-link?ref=v0.8.0"
+  source                = "github.com/infracost/cross-account-link?ref=v0.9.0"
   infracost_external_id = "INFRACOST_ORGANIZATION_ID"
   is_management_account = true
   enable_data_exports   = true
