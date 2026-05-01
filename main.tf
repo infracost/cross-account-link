@@ -24,6 +24,114 @@ resource "aws_iam_role" "cross_account_role" {
   })
 }
 
+locals {
+  // Read-only actions every cross-account-link role gets, regardless of
+  // whether it's installed in management or member mode.
+  shared_actions = [
+    // Tag fetching: fallback ListTags-style APIs for services that
+    // tag:GetResources doesn't index reliably, plus the default tag API.
+    "acm:ListTagsForCertificate",
+    "amplify:ListApps",
+    "amplify:ListTagsForResource",
+    "apigateway:GET",
+    "apprunner:ListServices",
+    "apprunner:ListTagsForResource",
+    "backup:ListTags",
+    "bedrock:ListTagsForResource",
+    "cloudfront:ListTagsForResource",
+    "ecr:ListTagsForResource",
+    "globalaccelerator:ListTagsForResource",
+    "glue:GetTags",
+    "logs:ListTagsForResource",
+    "macie2:ListTagsForResource",
+    "rds:ListTagsForResource",
+    "route53:ListTagsForResource",
+    "s3:GetBucketLocation",
+    "s3:GetBucketTagging",
+    "sagemaker:ListTags",
+    "savingsplans:ListTagsForResource",
+    "scheduler:ListTagsForResource",
+    "sns:ListTagsForResource",
+    "sqs:ListQueueTags",
+    "tag:GetResources",
+
+    // Workload discovery: enumerate workloads and surface metadata used by
+    // Compute Optimizer, recommendations, and tag enrichment.
+    "autoscaling:DescribeAutoScalingGroups",
+    "autoscaling:DescribeAutoScalingInstances",
+    "autoscaling:DescribeLaunchConfigurations",
+    "cloudformation:DescribeStacks",
+    "cloudformation:ListStacks",
+    "ec2:DescribeInstances",
+    "ec2:DescribeLaunchTemplates",
+    "ec2:DescribeVolumes",
+    "ecs:DescribeClusters",
+    "ecs:DescribeServices",
+    "ecs:DescribeTaskDefinition",
+    "ecs:ListClusters",
+    "ecs:ListServices",
+    "ecs:ListTaskDefinitions",
+    "eks:DescribeCluster",
+    "eks:DescribeFargateProfile",
+    "eks:DescribeNodegroup",
+    "eks:ListClusters",
+    "eks:ListFargateProfiles",
+    "eks:ListNodegroups",
+    "iam:ListInstanceProfiles",
+    "iam:ListInstanceProfileTags",
+    "lambda:ListFunctions",
+    "lambda:ListProvisionedConcurrencyConfigs",
+    "lambda:ListTags",
+    "logs:DescribeLogGroups",
+    "rds:DescribeDBClusters",
+    "rds:DescribeDBInstances",
+    "s3:ListAllMyBuckets",
+  ]
+
+  // Management-only actions: APIs that only function on the AWS
+  // Organization's management account.
+  management_extra_actions = [
+    // BCM Data Exports — discover FOCUS / cost-allocation export configs.
+    "bcm-data-exports:Get*",
+    "bcm-data-exports:List*",
+
+    // Pricing calculator scenarios.
+    "bcm-pricing-calculator:*",
+
+    // Cost Explorer.
+    "ce:Describe*",
+    "ce:Get*",
+    "ce:List*",
+
+    // Recommendations: Compute Optimizer, Cost Optimization Hub,
+    // Trusted Advisor.
+    "compute-optimizer:Get*",
+    "cost-optimization-hub:Get*",
+    "cost-optimization-hub:List*",
+    "trustedadvisor:Describe*",
+    "trustedadvisor:Get*",
+    "trustedadvisor:List*",
+
+    // Organization metadata: account list, names, tags, trusted-access
+    // services.
+    "organizations:DescribeOrganization",
+    "organizations:ListAccounts",
+    "organizations:ListAWSServiceAccessForOrganization",
+    "organizations:ListTagsForResource",
+
+    // Pricing API.
+    "pricing:Describe*",
+    "pricing:Get*",
+    "pricing:List*",
+
+    // S3 Storage Lens configuration discovery.
+    "s3:GetStorageLensConfiguration",
+    "s3:GetStorageLensConfigurationTagging",
+    "s3:GetStorageLensDashboard",
+    "s3:ListStorageLensConfigurations",
+  ]
+}
+
 resource "aws_iam_policy" "management_account_readonly_policy" {
   count       = var.is_management_account ? 1 : 0
   name        = "infracost-management-account-readonly${var.role_suffix}"
@@ -34,47 +142,7 @@ resource "aws_iam_policy" "management_account_readonly_policy" {
     Version : "2012-10-17",
     Statement : [
       {
-        Action : [
-          // For getting the organization, account names, tags, and trusted access enabled services
-          "organizations:ListAccounts",
-          "organizations:ListTagsForResource",
-          "organizations:DescribeOrganization",
-          "organizations:ListAWSServiceAccessForOrganization",
-          // For getting recommendations
-          "compute-optimizer:Get*",
-          "cost-optimization-hub:List*",
-          "cost-optimization-hub:Get*",
-          "trustedadvisor:Describe*",
-          "trustedadvisor:Get*",
-          "trustedadvisor:List*",
-          // For getting cost, usage and pricing data
-          "ce:Get*",
-          "ce:Describe*",
-          "ce:List*",
-          "pricing:Get*",
-          "pricing:List*",
-          "pricing:Describe*",
-          "bcm-pricing-calculator:*",
-          // Required for discovering BCM data exports and Storage Lens configurations.
-          "bcm-data-exports:List*",
-          "bcm-data-exports:Get*",
-          "s3:ListStorageLensConfigurations",
-          "s3:GetStorageLensConfiguration",
-          "s3:GetStorageLensConfigurationTagging",
-          "s3:GetStorageLensDashboard",
-          // Required for Compute Optimizer
-          // (https://docs.aws.amazon.com/service-authorization/latest/reference/list_awscomputeoptimizer.html)
-          "ec2:DescribeInstances",
-          "ec2:DescribeVolumes",
-          "autoscaling:DescribeAutoScalingGroups",
-          "autoscaling:DescribeAutoScalingInstances",
-          "rds:DescribeDBInstances",
-          "rds:DescribeDBClusters",
-          "ecs:ListClusters",
-          "ecs:ListServices",
-          "lambda:ListFunctions",
-          "lambda:ListProvisionedConcurrencyConfigs"
-        ],
+        Action : sort(concat(local.shared_actions, local.management_extra_actions)),
         Resource : "*",
         Effect : "Allow",
         Sid : "InfracostManagementAccountReadOnly"
@@ -99,28 +167,7 @@ resource "aws_iam_policy" "member_account_readonly_policy" {
     Version : "2012-10-17",
     Statement : [
       {
-        Action : [
-          "ec2:DescribeInstances",
-          "ec2:DescribeLaunchTemplates",
-          "ec2:DescribeVolumes",
-          "autoscaling:DescribeLaunchConfigurations",
-          "autoscaling:DescribeAutoScalingGroups",
-          "autoscaling:DescribeAutoScalingInstances",
-          "rds:DescribeDBInstances",
-          "rds:DescribeDBClusters",
-          "eks:ListClusters",
-          "eks:DescribeCluster",
-          "eks:ListNodegroups",
-          "eks:DescribeNodegroup",
-          "ecs:ListClusters",
-          "ecs:DescribeClusters",
-          "ecs:ListServices",
-          "ecs:DescribeServices",
-          "ecs:ListTaskDefinitions",
-          "ecs:DescribeTaskDefinition",
-          "lambda:ListFunctions",
-          "lambda:ListProvisionedConcurrencyConfigs",
-        ],
+        Action : sort(local.shared_actions),
         Resource : "*",
         Effect : "Allow",
         Sid : "InfracostMemberAccountReadOnly"
