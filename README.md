@@ -17,7 +17,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_management_account" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.9.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.10.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = true
       providers = {
@@ -43,7 +43,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
 
     module "infracost_member_account_1" {
-      source                     = "github.com/infracost/cross-account-link?ref=v0.9.0"
+      source                     = "github.com/infracost/cross-account-link?ref=v0.10.0"
       infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
       is_management_account      = false
       providers = {
@@ -103,7 +103,7 @@ Setting `enable_data_exports = true` provisions the following:
 
 ```terraform
 module "infracost_management_account" {
-  source                = "github.com/infracost/cross-account-link?ref=v0.9.0"
+  source                = "github.com/infracost/cross-account-link?ref=v0.10.0"
   infracost_external_id = "INFRACOST_ORGANIZATION_ID"
   is_management_account = true
   enable_data_exports   = true
