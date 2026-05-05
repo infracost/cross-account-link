@@ -4,11 +4,11 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
 
 ## Prerequisites
 - You have an AWS account
-- You need your Infracost Cloud organization ID - find this in the Org Settings of [Infracost Cloud](https://dashboard.infracost.io)
+- An external ID for the cross-account role: either your Infracost Cloud organization ID (from Org Settings of [Infracost Cloud](https://dashboard.infracost.io)) or a value of your choosing
 
 ## Usage instructions
 
-1. Use the module with `is_management_account = true` to create the cross account role on your management account. Pass the `infracost_external_id` variable (which points to your Infracost organization ID) to the module.
+1. Use the module with `is_management_account = true` to create the cross account role on your management account. Pass `infracost_external_id` — your Infracost organization ID, or your own value.
 
     ```terraform
     provider "aws" {
@@ -18,7 +18,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
 
     module "infracost_management_account" {
       source                     = "github.com/infracost/cross-account-link?ref=v0.10.0"
-      infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
+      infracost_external_id      = "YOUR_EXTERNAL_ID"
       is_management_account      = true
       providers = {
         aws = aws.management_account
@@ -34,7 +34,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     }
     ```
 
-2. Use the module with `is_management_account = false` to create the cross account role on all member accounts. As above, pass the `infracost_external_id` variable (which points to your Infracost organization ID) to the module.
+2. Use the module with `is_management_account = false` to create the cross account role on all member accounts. As above, pass `infracost_external_id`.
 
     ```terraform
     provider "aws" {
@@ -44,7 +44,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
 
     module "infracost_member_account_1" {
       source                     = "github.com/infracost/cross-account-link?ref=v0.10.0"
-      infracost_external_id      = "INFRACOST_ORGANIZATION_ID"
+      infracost_external_id      = "YOUR_EXTERNAL_ID"
       is_management_account      = false
       providers = {
         aws = aws.member_account_1
@@ -70,6 +70,7 @@ A Terraform module to set up an AWS cross-account link for Infracost Cloud. This
     Hi, my name is Rafa and I'm the DevOps Lead at ACME Corporation.
 
     - Infracost Cloud org ID: $YOUR_INFRACOST_ORGANIZATION_ID
+    - Cross-account role external ID: $YOUR_EXTERNAL_ID (same as org ID unless customized)
     - Our management account Cross Account ARN is:
     <terraform output infracost_management_account_cross_account_role_arn>
     - Our member accounts Cross Account ARNs are:
@@ -104,7 +105,7 @@ Setting `enable_data_exports = true` provisions the following:
 ```terraform
 module "infracost_management_account" {
   source                = "github.com/infracost/cross-account-link?ref=v0.10.0"
-  infracost_external_id = "INFRACOST_ORGANIZATION_ID"
+  infracost_external_id = "YOUR_EXTERNAL_ID"
   is_management_account = true
   enable_data_exports   = true
   providers = {
