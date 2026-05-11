@@ -92,6 +92,25 @@ Data exports help Infracost source real billing and usage data from your AWS acc
 
 - Modules must set `is_management_account = true`.
 - It is required that [S3 Storage Lens trusted access](https://docs.aws.amazon.com/AmazonS3/latest/userguide/storage_lens_with_organizations_enabling_trusted_access.html) is enabled in your AWS Organization for Storage Lens exports.
+- The Cost Optimization Hub recommendations export requires opt-in to **AWS Compute Optimizer** and **AWS Cost Optimization Hub** (both org-wide). See [Enrollment prerequisites](#enrollment-prerequisites) below — these are a one-time, out-of-band setup and the module does not manage them.
+
+### Enrollment prerequisites
+
+Compute Optimizer and Cost Optimization Hub enrollment must be performed manually against the management account before applying. The module deliberately does not manage these — they are global, account-level toggles outside the scope of this cross-account-link module.
+
+```bash
+aws compute-optimizer update-enrollment-status \
+  --status Active \
+  --include-member-accounts \
+  --region us-east-1
+
+aws cost-optimization-hub update-enrollment-status \
+  --status Active \
+  --include-member-accounts \
+  --region us-east-1
+```
+
+AWS documents that enrollment can take up to 24 hours to take effect, though it is often faster.
 
 ### Usage
 
@@ -119,3 +138,9 @@ module "infracost_management_account" {
 Data remains under the ownership of the customer AWS account. Infracost is permitted solely read-only access.
 
 Each data exports bucket is configured with a 365-day lifecycle before objects are deleted. Intelligent tiering is used to reduce storage costs.
+
+### Troubleshooting
+
+**`ValidationException: This account is unable to create an export against this Table`** on `aws_bcmdataexports_export.daily_cost_optimization`.
+
+The management account is not yet opted in to AWS Compute Optimizer and AWS Cost Optimization Hub. Run the commands in [Enrollment prerequisites](#enrollment-prerequisites) above, then re-run `terraform apply`.
