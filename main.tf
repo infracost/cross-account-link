@@ -11,6 +11,17 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 data "aws_organizations_organization" "current" {}
 
+locals {
+  // Bump on each release. Surfaced as the InfracostModuleVersion tag on every
+  // resource this module creates, so Infracost can detect which module
+  // version provisioned the role.
+  module_version = "v0.11.0"
+
+  common_tags = {
+    InfracostModuleVersion = local.module_version
+  }
+}
+
 resource "aws_iam_role" "cross_account_role" {
   name = "infracost-readonly${var.role_suffix}"
   assume_role_policy = jsonencode({
@@ -22,6 +33,8 @@ resource "aws_iam_role" "cross_account_role" {
       }
     ]
   })
+
+  tags = local.common_tags
 }
 
 locals {
@@ -149,6 +162,8 @@ resource "aws_iam_policy" "management_account_readonly_policy" {
       }
     ]
   })
+
+  tags = local.common_tags
 }
 
 resource "aws_iam_role_policy_attachment" "management_account_readonly_policy_attachment" {
@@ -174,11 +189,53 @@ resource "aws_iam_policy" "member_account_readonly_policy" {
       }
     ]
   })
+
+  tags = local.common_tags
 }
 
 # Attach policies to the role
 resource "aws_iam_role_policy_attachment" "member_account_readonly_policy_attachment" {
   count      = var.is_management_account ? 0 : 1
   policy_arn = aws_iam_policy.member_account_readonly_policy[count.index].arn
+  role       = aws_iam_role.cross_account_role.name
+}
+
+resource "aws_iam_policy" "role_introspection_policy" {
+  name        = "infracost-role-introspection${var.role_suffix}"
+  path        = "/"
+  description = "Allows the Infracost cross-account role to read and simulate its own permissions for feature detection"
+
+  policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Sid : "InspectRole",
+        Effect : "Allow",
+        Action : [
+          "iam:GetRole",
+          "iam:ListRolePolicies",
+          "iam:GetRolePolicy",
+          "iam:ListAttachedRolePolicies",
+          "iam:SimulatePrincipalPolicy",
+        ],
+        Resource : aws_iam_role.cross_account_role.arn,
+      },
+      {
+        Sid : "InspectAttachedPolicies",
+        Effect : "Allow",
+        Action : [
+          "iam:GetPolicy",
+          "iam:GetPolicyVersion",
+        ],
+        Resource : "*",
+      },
+    ]
+  })
+
+  tags = local.common_tags
+}
+
+resource "aws_iam_role_policy_attachment" "role_introspection_policy_attachment" {
+  policy_arn = aws_iam_policy.role_introspection_policy.arn
   role       = aws_iam_role.cross_account_role.name
 }

@@ -135,6 +135,8 @@ resource "aws_bcmdataexports_export" "daily_cost_optimization" {
       frequency = "SYNCHRONOUS"
     }
   }
+
+  tags = var.tags
 }
 
 resource "aws_bcmdataexports_export" "daily_focus" {
@@ -169,4 +171,6 @@ resource "aws_bcmdataexports_export" "daily_focus" {
       frequency = "SYNCHRONOUS"
     }
   }
+
+  tags = var.tags
 }

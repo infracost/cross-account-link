@@ -39,6 +39,8 @@ resource "aws_iam_policy" "s3_access_policy" {
       }
     ]
   })
+
+  tags = local.common_tags
 }
 
 resource "aws_iam_role_policy_attachment" "s3_access_policy_attachment" {
