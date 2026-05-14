@@ -1,5 +1,6 @@
 resource "aws_s3_bucket" "storage_lens_data_exports" {
   bucket = "infracost-storagelens-exports-${var.aws_account_id}"
+  tags   = var.tags
 }
 
 resource "aws_s3_bucket_lifecycle_configuration" "data_exports_lifecycle" {

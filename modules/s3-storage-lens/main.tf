@@ -60,4 +60,6 @@ resource "aws_s3control_storage_lens_configuration" "export" {
       }
     }
   }
+
+  tags = var.tags
 }
