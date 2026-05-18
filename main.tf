@@ -12,11 +12,6 @@ data "aws_region" "current" {}
 data "aws_organizations_organization" "current" {}
 
 locals {
-  // Bump on each release. Surfaced as the InfracostModuleVersion tag on every
-  // resource this module creates, so Infracost can detect which module
-  // version provisioned the role.
-  module_version = "v0.11.0"
-
   common_tags = {
     InfracostModuleVersion = local.module_version
   }
