@@ -234,3 +234,33 @@ resource "aws_iam_role_policy_attachment" "role_introspection_policy_attachment"
   policy_arn = aws_iam_policy.role_introspection_policy.arn
   role       = aws_iam_role.cross_account_role.name
 }
+
+resource "aws_iam_policy" "kms_decrypt_policy" {
+  count       = var.is_management_account && var.kms_key_arn != null ? 1 : 0
+  name        = "infracost-kms-decrypt${var.role_suffix}"
+  path        = "/"
+  description = "Allows the Infracost cross-account role to decrypt S3 export objects using the customer-managed KMS key"
+
+  policy = jsonencode({
+    Version : "2012-10-17",
+    Statement : [
+      {
+        Sid : "InfracostKMSDecrypt",
+        Effect : "Allow",
+        Action : [
+          "kms:Decrypt",
+          "kms:DescribeKey",
+        ],
+        Resource : var.kms_key_arn,
+      }
+    ]
+  })
+
+  tags = local.common_tags
+}
+
+resource "aws_iam_role_policy_attachment" "kms_decrypt_policy_attachment" {
+  count      = var.is_management_account && var.kms_key_arn != null ? 1 : 0
+  policy_arn = aws_iam_policy.kms_decrypt_policy[0].arn
+  role       = aws_iam_role.cross_account_role.name
+}
