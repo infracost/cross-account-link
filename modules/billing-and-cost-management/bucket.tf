@@ -18,6 +18,10 @@ resource "aws_s3_bucket_lifecycle_configuration" "data_exports_lifecycle" {
     expiration {
       days = 365
     }
+
+    abort_incomplete_multipart_upload {
+      days_after_initiation = 7
+    }
   }
 }
 
@@ -50,6 +54,29 @@ data "aws_iam_policy_document" "data_exports_policy_doc" {
       values = [
         var.aws_account_id,
       ]
+    }
+  }
+
+  statement {
+    sid    = "DenyNonSSLRequests"
+    effect = "Deny"
+
+    principals {
+      type        = "*"
+      identifiers = ["*"]
+    }
+
+    actions = ["s3:*"]
+
+    resources = [
+      aws_s3_bucket.bcm_data_exports.arn,
+      "${aws_s3_bucket.bcm_data_exports.arn}/*",
+    ]
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values   = ["false"]
     }
   }
 }
