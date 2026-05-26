@@ -14,21 +14,21 @@ output "role_arn" {
 }
 
 output "billing_and_cost_management_export_arn" {
-  description = "The ARN of the BCM Data Exports export. Provide this to Infracost."
+  description = "The ARN of the BCM Data Exports export."
   value       = var.enable_data_exports ? module.billing_and_cost_management_export[0].export_arn : null
 }
 
 output "billing_and_cost_management_bucket_arn" {
-  description = "The ARN of the S3 bucket used for BCM Data Exports. Provide this to Infracost."
+  description = "The ARN of the S3 bucket used for BCM Data Exports."
   value       = var.enable_data_exports ? module.billing_and_cost_management_export[0].bucket_arn : null
 }
 
 output "s3_storage_lens_configuration_arn" {
-  description = "The ARN of the S3 Storage Lens configuration. Provide this to Infracost."
+  description = "The ARN of the S3 Storage Lens configuration."
   value       = var.enable_data_exports ? module.s3_storage_lens_export[0].configuration_arn : null
 }
 
 output "s3_storage_lens_bucket_arn" {
-  description = "The ARN of the S3 bucket used for S3 Storage Lens exports. Provide this to Infracost."
+  description = "The ARN of the S3 bucket used for S3 Storage Lens exports."
   value       = var.enable_data_exports ? module.s3_storage_lens_export[0].bucket_arn : null
 }
