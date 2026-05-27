@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.11.3](https://github.com/infracost/cross-account-link/compare/v0.11.2...v0.11.3) (2026-05-27)
+
+
+### Miscellaneous
+
+* redirect to official module repo ([#32](https://github.com/infracost/cross-account-link/issues/32)) ([86af90a](https://github.com/infracost/cross-account-link/commit/86af90a7041b4651a6c2475224e02cab01991542))
+
 ## [0.11.2](https://github.com/infracost/cross-account-link/compare/v0.11.1...v0.11.2) (2026-05-26)
 
 
